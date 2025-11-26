@@ -1,0 +1,60 @@
+# Root .dockerignore
+# Files to exclude from all Docker builds
+
+# Git
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+bin/
+obj/
+dist/
+build/
+*.dll
+*.exe
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Documentation
+docs/
+*.md
+README.md
+CHANGELOG.md
+
+# Environment
+.env
+.env.*
+.env.local
+
+# Testing
+Tests/
+test/
+__tests__/
+__mocks__/
+*.test.js
+*.spec.js
+coverage/
+
+# Misc
+.cache/
+.npm/
+publish/
+.vscode/
+.vs/
+.user
+.suo
+.DS_Store

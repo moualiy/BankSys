@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # SQL Server Service
+  # ============================================
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: banksystem-sqlserver
+    
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-sa123456}
+      MSSQL_PID: ${MSSQL_PID:-Developer}
+    
+    ports:
+      - "${SQL_PORT:-1433}:1433"
+    
+    volumes:
+      # Persistent database storage
+      - mssql-data:/var/opt/mssql/data
+      
+      # Mount the backup file (read-only)
+      - ./db/Bank_backup.bak:/var/opt/mssql/backup/Bank_backup.bak:ro
+      
+      # Mount bash restoration script
+      - ./docker/mssql-init/restore-database.sh:/docker-entrypoint-initdb.d/01-restore-database.sh
+      
+      # Mount fallback SQL script
+      - ./docker/mssql-init/02-create-tables.sql:/docker-entrypoint-initdb.d/02-create-tables.sql
+    
+    # Health check - verifies database is ready
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost,1433", "-U", "sa", "-P", "${MSSQL_SA_PASSWORD:-sa123456}", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+    
+    networks:
+      - banksystem-network
+    
+    # Restart policy
+    restart: unless-stopped
+
+
+  # ============================================
+  # Backend API Service (.NET 9.0)
+  # ============================================
+  backend:
+    build:
+      context: ./
+      dockerfile: ./src/BankSystem.Api/Dockerfile
+    
+    container_name: banksystem-backend
+    
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: ${ConnectionStrings__Default:-Server=sqlserver,1433;Database=Bank;User Id=sa;Password=sa123456;TrustServerCertificate=True;}
+    
+    ports:
+      - "${BACKEND_PORT:-5000}:8080"
+    
+    # Wait for SQL Server health check to pass before starting
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    
+    networks:
+      - banksystem-network
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Optional: Enable for debugging
+    # volumes:
+    #   - ./src/BankSystem.Api:/app/src/BankSystem.Api
+
+
+  # ============================================
+  # Frontend Service (React)
+  # ============================================
+  frontend:
+    build:
+      context: ./
+      dockerfile: ./frontend/presentation-app/Dockerfile
+    
+    container_name: banksystem-frontend
+    
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000}
+    
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    
+    # Wait for backend to be ready
+    depends_on:
+      - backend
+    
+    networks:
+      - banksystem-network
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Optional: Enable for hot reload during development
+    # volumes:
+    #   - ./frontend/presentation-app/src:/app/src
+
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  banksystem-network:
+    driver: bridge
+
+
+# ============================================
+# Named Volumes
+# ============================================
+volumes:
+  mssql-data:
+    driver: local

@@ -1,0 +1,12 @@
+d:\WS2\BankSystem\src\BankSystem.Data\bin\Release\net9.0\BankSystem.Data.deps.json
+d:\WS2\BankSystem\src\BankSystem.Data\bin\Release\net9.0\BankSystem.Data.dll
+d:\WS2\BankSystem\src\BankSystem.Data\bin\Release\net9.0\BankSystem.Data.pdb
+d:\WS2\BankSystem\src\BankSystem.Data\obj\Release\net9.0\BankSystem.Data.csproj.AssemblyReference.cache
+d:\WS2\BankSystem\src\BankSystem.Data\obj\Release\net9.0\BankSystem.Data.GeneratedMSBuildEditorConfig.editorconfig
+d:\WS2\BankSystem\src\BankSystem.Data\obj\Release\net9.0\BankSystem.Data.AssemblyInfoInputs.cache
+d:\WS2\BankSystem\src\BankSystem.Data\obj\Release\net9.0\BankSystem.Data.AssemblyInfo.cs
+d:\WS2\BankSystem\src\BankSystem.Data\obj\Release\net9.0\BankSystem.Data.csproj.CoreCompileInputs.cache
+d:\WS2\BankSystem\src\BankSystem.Data\obj\Release\net9.0\BankSystem.Data.dll
+d:\WS2\BankSystem\src\BankSystem.Data\obj\Release\net9.0\refint\BankSystem.Data.dll
+d:\WS2\BankSystem\src\BankSystem.Data\obj\Release\net9.0\BankSystem.Data.pdb
+d:\WS2\BankSystem\src\BankSystem.Data\obj\Release\net9.0\ref\BankSystem.Data.dll
