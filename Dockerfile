@@ -20,11 +20,8 @@ RUN dotnet restore
 # Copy source code
 COPY src/ /src/
 
-# Build the application
-RUN dotnet build -c Release -o /app/build
-
-# Publish the application
-RUN dotnet publish -c Release -o /app/publish --no-build
+# Publish the application (includes build)
+RUN dotnet publish -c Release -o /app/publish
 
 # ============================================
 # Stage 2: Runtime
