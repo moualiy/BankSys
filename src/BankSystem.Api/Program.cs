@@ -39,8 +39,12 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-// Health check / root endpoint
-app.MapGet("/", () => Results.Ok(new { status = "healthy", message = "BankSystem API is running" }))
+// Serve static files from wwwroot (React build)
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+// Health check endpoint
+app.MapGet("/api/health", () => Results.Ok(new { status = "healthy", message = "BankSystem API is running" }))
     .WithName("HealthCheck")
     .WithTags("Health");
 
@@ -338,6 +342,9 @@ app.MapGet("/api/transactions/history", (TransactionService transactionService) 
 })
 .WithName("GetTransactionHistory")
 .WithTags("Transactions");
+
+// Fallback to serve React app for client-side routing
+app.MapFallbackToFile("index.html");
 
 app.Run();
 

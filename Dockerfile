@@ -1,10 +1,29 @@
 # Root Dockerfile for Railway deployment
-# Builds the .NET Backend API
+# Builds React Frontend + .NET Backend API
 
 # ============================================
-# Stage 1: Build
+# Stage 1: Build React Frontend
 # ============================================
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /frontend
+
+# Copy package files
+COPY frontend/presentation-app/package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy frontend source code
+COPY frontend/presentation-app/ ./
+
+# Build the React app
+RUN npm run build
+
+# ============================================
+# Stage 2: Build .NET Backend
+# ============================================
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS backend-build
 
 WORKDIR /src
 
@@ -24,14 +43,17 @@ COPY src/ /src/
 RUN dotnet publish -c Release -o /app/publish
 
 # ============================================
-# Stage 2: Runtime
+# Stage 3: Runtime
 # ============================================
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 
 WORKDIR /app
 
-# Copy published application from build stage
-COPY --from=build /app/publish .
+# Copy published .NET application from build stage
+COPY --from=backend-build /app/publish .
+
+# Copy React build output to wwwroot folder
+COPY --from=frontend-build /frontend/build ./wwwroot
 
 # Expose port (Railway uses PORT env variable)
 EXPOSE 8080
