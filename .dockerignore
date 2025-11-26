@@ -17,12 +17,11 @@
 Thumbs.db
 
 # Build artifacts
-bin/
-obj/
+**/bin/
+**/obj/
 dist/
-build/
-*.dll
-*.exe
+**/build/
+publish/
 
 # Node
 node_modules/
@@ -52,9 +51,9 @@ coverage/
 # Misc
 .cache/
 .npm/
-publish/
 .vscode/
 .vs/
-.user
-.suo
+.playwright-mcp/
+*.user
+*.suo
 .DS_Store
