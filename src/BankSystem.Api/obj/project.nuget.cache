@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "pkbCXNEFdn0=",
+  "dgSpecHash": "qeiaqXDwUIA=",
   "success": true,
-  "projectFilePath": "D:\\WS2\\BankSystem\\src\\BankSystem.Api\\BankSystem.Api.csproj",
+  "projectFilePath": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Api\\BankSystem.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Makka Stores 2\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\Makka Stores 2\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.9\\microsoft.aspnetcore.openapi.9.0.9.nupkg.sha512",

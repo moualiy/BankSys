@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\WS2\\BankSystem\\src\\BankSystem.Api\\BankSystem.Api.csproj": {}
+    "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Api\\BankSystem.Api.csproj": {}
   },
   "projects": {
-    "D:\\WS2\\BankSystem\\src\\BankSystem.Api\\BankSystem.Api.csproj": {
+    "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Api\\BankSystem.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\WS2\\BankSystem\\src\\BankSystem.Api\\BankSystem.Api.csproj",
+        "projectUniqueName": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Api\\BankSystem.Api.csproj",
         "projectName": "BankSystem.Api",
-        "projectPath": "D:\\WS2\\BankSystem\\src\\BankSystem.Api\\BankSystem.Api.csproj",
+        "projectPath": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Api\\BankSystem.Api.csproj",
         "packagesPath": "C:\\Users\\Makka Stores 2\\.nuget\\packages\\",
-        "outputPath": "D:\\WS2\\BankSystem\\src\\BankSystem.Api\\obj\\",
+        "outputPath": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,8 +32,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "D:\\WS2\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj": {
-                "projectPath": "D:\\WS2\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj"
+              "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj": {
+                "projectPath": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj"
               }
             }
           }
@@ -86,14 +86,14 @@
         }
       }
     },
-    "D:\\WS2\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj": {
+    "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\WS2\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj",
+        "projectUniqueName": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj",
         "projectName": "BankSystem.Business",
-        "projectPath": "D:\\WS2\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj",
+        "projectPath": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj",
         "packagesPath": "C:\\Users\\Makka Stores 2\\.nuget\\packages\\",
-        "outputPath": "D:\\WS2\\BankSystem\\src\\BankSystem.Business\\obj\\",
+        "outputPath": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Business\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -114,8 +114,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "D:\\WS2\\BankSystem\\src\\BankSystem.Data\\BankSystem.Data.csproj": {
-                "projectPath": "D:\\WS2\\BankSystem\\src\\BankSystem.Data\\BankSystem.Data.csproj"
+              "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Data\\BankSystem.Data.csproj": {
+                "projectPath": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Data\\BankSystem.Data.csproj"
               }
             }
           }
@@ -161,14 +161,14 @@
         }
       }
     },
-    "D:\\WS2\\BankSystem\\src\\BankSystem.Data\\BankSystem.Data.csproj": {
+    "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Data\\BankSystem.Data.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\WS2\\BankSystem\\src\\BankSystem.Data\\BankSystem.Data.csproj",
+        "projectUniqueName": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Data\\BankSystem.Data.csproj",
         "projectName": "BankSystem.Data",
-        "projectPath": "D:\\WS2\\BankSystem\\src\\BankSystem.Data\\BankSystem.Data.csproj",
+        "projectPath": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Data\\BankSystem.Data.csproj",
         "packagesPath": "C:\\Users\\Makka Stores 2\\.nuget\\packages\\",
-        "outputPath": "D:\\WS2\\BankSystem\\src\\BankSystem.Data\\obj\\",
+        "outputPath": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Data\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -32,11 +32,17 @@ var app = builder.Build();
 app.UseCors("AllowSpecificOrigin");
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.MapOpenApi();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BankSystem API V1");
+    c.RoutePrefix = "swagger";
+});
+
+// Health check / root endpoint
+app.MapGet("/", () => Results.Ok(new { status = "healthy", message = "BankSystem API is running" }))
+    .WithName("HealthCheck")
+    .WithTags("Health");
 
 // app.UseHttpsRedirection();
 

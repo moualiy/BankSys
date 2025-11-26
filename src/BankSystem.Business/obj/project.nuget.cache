@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FzuH1Ec3n/c=",
+  "dgSpecHash": "VCkUODefh2o=",
   "success": true,
-  "projectFilePath": "D:\\WS2\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj",
+  "projectFilePath": "D:\\DOWNLOAD\\Download for programing\\cm\\BankSystem\\src\\BankSystem.Business\\BankSystem.Business.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Makka Stores 2\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\Makka Stores 2\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.0\\microsoft.netcore.platforms.3.1.0.nupkg.sha512",
