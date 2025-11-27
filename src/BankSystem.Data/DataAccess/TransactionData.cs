@@ -1,6 +1,6 @@
 
 using BankSystem.Data.Models;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 namespace BankSystem.Data.DataAccess
 {

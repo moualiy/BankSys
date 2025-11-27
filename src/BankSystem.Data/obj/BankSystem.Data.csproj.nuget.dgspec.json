@@ -50,9 +50,9 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
-            "System.Data.SqlClient": {
+            "Microsoft.Data.SqlClient": {
               "target": "Package",
-              "version": "[4.8.6, )"
+              "version": "[5.2.2, )"
             }
           },
           "imports": [

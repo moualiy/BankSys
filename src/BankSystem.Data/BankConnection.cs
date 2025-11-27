@@ -5,7 +5,7 @@ namespace BankSystem.Data
 {
     public static class BankConnection
     {
-        private const string DefaultConnectionString = "Server=.;Database=Bank;User Id=sa;Password=sa123456;TrustServerCertificate=True;";
+        private const string DefaultConnectionString = "Server=.;Database=Bank;User Id=sa;Password=sa123456;TrustServerCertificate=True;Encrypt=True;";
         private static string? _configuredConnectionString;
 
         /// <summary>
@@ -15,7 +15,7 @@ namespace BankSystem.Data
         {
             if (!string.IsNullOrWhiteSpace(connectionString))
             {
-                _configuredConnectionString = connectionString;
+                _configuredConnectionString = EnsureTlsOptions(connectionString);
             }
         }
 
@@ -33,11 +33,13 @@ namespace BankSystem.Data
 
         private static string? GetEnvironmentConnectionString()
         {
-            return GetEnv("ConnectionStrings__Default")
+            var connStr = GetEnv("ConnectionStrings__Default")
                 ?? GetEnv("BANKSYSTEM_DB_CONNECTION")
                 ?? GetEnv("SQLSERVER_CONNECTION_STRING")
                 ?? GetEnv("SQLAZURECONNSTR_DefaultConnection")
                 ?? GetEnv("CUSTOMCONNSTR_DefaultConnection");
+            
+            return connStr != null ? EnsureTlsOptions(connStr) : null;
         }
 
         private static string? BuildFromUrlVariable()
@@ -56,7 +58,7 @@ namespace BankSystem.Data
             // If the variable already contains a connection string, just return it.
             if (rawUrl.Contains("Server=", StringComparison.OrdinalIgnoreCase))
             {
-                return rawUrl;
+                return EnsureTlsOptions(rawUrl);
             }
 
             if (!Uri.TryCreate(rawUrl, UriKind.Absolute, out var uri))
@@ -77,7 +79,7 @@ namespace BankSystem.Data
             }
 
             var server = string.IsNullOrWhiteSpace(port) ? host : $"{host},{port}";
-            return $"Server={server};Database={database};User Id={username};Password={password};Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;";
+            return $"Server={server};Database={database};User Id={username};Password={password};Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;";
         }
 
         private static string? BuildFromParts()
@@ -112,15 +114,34 @@ namespace BankSystem.Data
                 ?? GetEnv("SQLSERVER_PASSWORD")
                 ?? GetEnv("RAILWAY_PASSWORD");
 
-            var encrypt = GetEnv("DB_ENCRYPT") ?? "True";
-
             if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(database) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
                 return null;
             }
 
             var server = string.IsNullOrWhiteSpace(port) ? host : $"{host},{port}";
-            return $"Server={server};Database={database};User Id={username};Password={password};Encrypt={encrypt};TrustServerCertificate=True;MultipleActiveResultSets=True;";
+            return $"Server={server};Database={database};User Id={username};Password={password};Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;";
+        }
+
+        /// <summary>
+        /// Ensures TLS/SSL options are present in connection string for Railway compatibility
+        /// </summary>
+        private static string EnsureTlsOptions(string connStr)
+        {
+            if (!connStr.Contains("TrustServerCertificate", StringComparison.OrdinalIgnoreCase))
+            {
+                connStr = connStr.TrimEnd(';') + ";TrustServerCertificate=True";
+            }
+            if (!connStr.Contains("Encrypt=", StringComparison.OrdinalIgnoreCase))
+            {
+                connStr = connStr.TrimEnd(';') + ";Encrypt=True";
+            }
+            if (!connStr.Contains("Connection Timeout", StringComparison.OrdinalIgnoreCase) && 
+                !connStr.Contains("ConnectTimeout", StringComparison.OrdinalIgnoreCase))
+            {
+                connStr = connStr.TrimEnd(';') + ";Connection Timeout=30";
+            }
+            return connStr;
         }
 
         private static string? GetEnv(string key) => Environment.GetEnvironmentVariable(key);
