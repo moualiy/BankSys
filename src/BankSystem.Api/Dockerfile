@@ -21,11 +21,8 @@ RUN dotnet restore
 # Copy source code
 COPY src/ /src/
 
-# Build the application
-RUN dotnet build -c Release -o /app/build
-
-# Publish the application
-RUN dotnet publish -c Release -o /app/publish --no-build
+# Build and publish the application
+RUN dotnet publish -c Release -o /app/publish
 
 # ============================================
 # Stage 2: Runtime
@@ -34,22 +31,21 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0
 
 WORKDIR /app
 
-# Install SQL Server tools (optional, for debugging)
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Copy published application from build stage
 COPY --from=build /app/publish .
 
 # Expose port
-EXPOSE 8080 8443
+EXPOSE 8080
 
 # Health check
-HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/api/health || exit 1
 
 # Set environment variables
+ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:8080
 
 # Run the application

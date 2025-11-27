@@ -5,7 +5,7 @@
 # ============================================
 # Stage 1: Build
 # ============================================
-FROM node:18-alpine AS build
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
@@ -13,37 +13,60 @@ WORKDIR /app
 COPY frontend/presentation-app/package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production && \
-    npm ci --only=development
+RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY frontend/presentation-app/ .
+
+# Build arguments for API URL configuration
+ARG REACT_APP_API_BASE_URL="/api"
+ARG REACT_APP_API_URL="/api"
+ENV REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
+ENV REACT_APP_API_URL=${REACT_APP_API_URL}
 
 # Build the React application
 RUN npm run build
 
 # ============================================
-# Stage 2: Runtime
+# Stage 2: Runtime with nginx
 # ============================================
-FROM node:18-alpine
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy nginx configuration
+RUN rm /etc/nginx/conf.d/default.conf
 
-# Install serve to run the production build
-RUN npm install -g serve@14
+# Create nginx config for SPA routing
+RUN echo 'server { \
+    listen 3000; \
+    server_name localhost; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    location /api { \
+        proxy_pass http://backend:8080; \
+        proxy_http_version 1.1; \
+        proxy_set_header Upgrade $http_upgrade; \
+        proxy_set_header Connection "upgrade"; \
+        proxy_set_header Host $host; \
+        proxy_set_header X-Real-IP $remote_addr; \
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
+        proxy_set_header X-Forwarded-Proto $scheme; \
+    } \
+    gzip on; \
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript; \
+}' > /etc/nginx/conf.d/default.conf
 
 # Copy built application from build stage
-COPY --from=build /app/build ./build
-
-# Copy package.json for reference
-COPY --from=build /app/package.json ./
+COPY --from=build /app/build /usr/share/nginx/html
 
 # Expose port
 EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD wget -q -O- http://localhost:3000 || exit 1
 
-# Serve the application
-CMD ["serve", "-s", "build", "-l", "3000"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

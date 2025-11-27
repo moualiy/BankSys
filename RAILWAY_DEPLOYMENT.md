@@ -4,197 +4,243 @@
 
 This guide explains how to deploy BankSystem on Railway. The application consists of:
 - **Frontend + Backend**: Combined in a single container (served from the root Dockerfile)
-- **Database**: SQL Server (you need to provision this separately)
+- **Database**: SQL Server hosted on Railway
 
 ---
 
-## 🔴 IMPORTANT: Database Setup
+## 📋 Quick Start Deployment
 
-Railway does **NOT** have a native SQL Server template. You have several options:
+### Your Current Railway Configuration
 
-### Option 1: Use Azure SQL Database (Recommended for Production)
+Based on your `.env` configuration, your Railway SQL Server is already set up:
 
-1. Create an Azure SQL Database at [Azure Portal](https://portal.azure.com)
-2. Get the connection string from Azure
-3. Set the environment variable on Railway:
-   ```
-   BANKSYSTEM_DB_CONNECTION=Server=your-server.database.windows.net;Database=Bank;User Id=your-user;Password=your-password;Encrypt=True;TrustServerCertificate=False;
-   ```
-
-### Option 2: Use a Third-Party SQL Server Host
-
-Some options:
-- **ElephantSQL** (PostgreSQL - would require code changes)
-- **PlanetScale** (MySQL - would require code changes)
-- **Railway Private Networking** with a custom SQL Server Docker image
-
-### Option 3: Run SQL Server on Railway (Not Recommended)
-
-You can deploy a custom SQL Server container, but:
-- It requires a lot of RAM (minimum 2GB)
-- Railway's free tier may not support this
-- Persistence can be tricky
+| Setting | Value |
+|---------|-------|
+| **SQL Server Host** | `caboose.proxy.rlwy.net` |
+| **SQL Server Port** | `22254` |
+| **Database** | `Bank` |
+| **User** | `sa` |
+| **Password** | `sa123456` |
 
 ---
 
 ## 🛠️ Railway Environment Variables
 
-Set these environment variables in your Railway project settings:
+Ensure these environment variables are set in your Railway project:
 
-### Required Variables
+```env
+# Required
+ConnectionStrings__Default=Server=caboose.proxy.rlwy.net,22254;Database=Bank;User Id=sa;Password=sa123456;TrustServerCertificate=True;Encrypt=False;Connection Timeout=30;
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `BANKSYSTEM_DB_CONNECTION` | Full SQL Server connection string | `Server=your-server.database.windows.net;Database=Bank;User Id=sa;Password=YourPass123;Encrypt=True;TrustServerCertificate=True;` |
+# ASP.NET Core
+ASPNETCORE_ENVIRONMENT=Production
+ASPNETCORE_URLS=http://+:8080
 
-### Alternative Connection Variables (if not using full connection string)
+# React App
+REACT_APP_API_BASE_URL=/api
+REACT_APP_API_URL=/api
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DB_HOST` | Database server hostname | `your-server.database.windows.net` |
-| `DB_PORT` | Database port | `1433` |
-| `DB_NAME` | Database name | `Bank` |
-| `DB_USER` | Database username | `sa` |
-| `DB_PASSWORD` | Database password | `YourSecurePassword123` |
+# SQL Server (if running SQL Server container on Railway)
+ACCEPT_EULA=Y
+MSSQL_SA_PASSWORD=sa123456
+MSSQL_PID=Developer
+```
 
 ---
 
 ## 📋 Step-by-Step Railway Deployment
 
-### Step 1: Create a New Project on Railway
+### Step 1: Set Up Database on Railway
+
+Your SQL Server is already configured at `caboose.proxy.rlwy.net:22254`. If you need to create the database schema:
+
+**Option A: Using the restore script (from local machine)**
+```bash
+# Make script executable
+chmod +x restore-to-railway.sh
+
+# Run the script
+./restore-to-railway.sh
+```
+
+**Option B: Manual SQL execution**
+1. Connect to your Railway SQL Server using Azure Data Studio or SSMS:
+   - Server: `caboose.proxy.rlwy.net,22254`
+   - User: `sa`
+   - Password: `sa123456`
+2. Run the script `docker/mssql-init/02-create-tables.sql`
+
+### Step 2: Deploy Application on Railway
 
 1. Go to [Railway](https://railway.app)
-2. Click "New Project"
-3. Choose "Deploy from GitHub repo"
-4. Select your BankSystem repository
+2. Click "New Project" → "Deploy from GitHub repo"
+3. Select your BankSystem repository
+4. Railway will automatically detect the `Dockerfile` and build
 
-### Step 2: Configure Environment Variables
+### Step 3: Configure Environment Variables
 
 1. Click on your deployed service
 2. Go to "Variables" tab
-3. Add the database connection string:
-   ```
-   BANKSYSTEM_DB_CONNECTION=your-connection-string-here
-   ```
+3. Add all the environment variables listed above
 
-### Step 3: Verify the Deployment
+### Step 4: Generate Domain
 
-1. Wait for the deployment to complete
-2. Click "Generate Domain" to get a public URL
-3. Open the URL and test the application
+1. Go to "Settings" tab
+2. Click "Generate Domain" under Networking
+3. Your app will be available at `https://your-app.railway.app`
 
 ---
 
 ## 🗄️ Database Schema Setup
 
-If you're using a fresh database, you need to create the tables. Run these SQL scripts in order:
+The database schema is defined in `docker/mssql-init/02-create-tables.sql`. It creates:
 
-1. Connect to your database using Azure Data Studio, SSMS, or any SQL client
-2. Execute the script in `docker/mssql-init/02-create-tables.sql`
+- **Users** - System users for authentication
+- **Clients** - Bank clients/customers
+- **Transactions** - Transaction records
+- **TransferLog** - Transfer history between clients
+- **LoginRegister** - Login audit trail
 
-Or manually create the schema:
+### Quick Schema Creation
 
 ```sql
+-- Connect to your Railway SQL Server and run:
+
+-- Create database if not exists
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'Bank')
+BEGIN
+    CREATE DATABASE [Bank]
+END
+GO
+
+USE [Bank]
+GO
+
 -- Create Users table
-CREATE TABLE Users (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    FirstName NVARCHAR(50) NOT NULL,
-    LastName NVARCHAR(50) NOT NULL,
-    Email NVARCHAR(100) NOT NULL,
-    UserName NVARCHAR(50) NOT NULL UNIQUE,
-    PasswordHash NVARCHAR(255) NOT NULL,
-    PermissionLevel INT NOT NULL DEFAULT 1
-);
+IF OBJECT_ID('dbo.Users', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Users (
+        Id INT PRIMARY KEY IDENTITY(1,1),
+        FirstName NVARCHAR(50) NOT NULL,
+        LastName NVARCHAR(50) NOT NULL,
+        Email NVARCHAR(100) NOT NULL UNIQUE,
+        UserName NVARCHAR(50) NOT NULL UNIQUE,
+        PasswordHash NVARCHAR(255) NOT NULL,
+        PermissionLevel INT DEFAULT 0,
+        CreatedAt DATETIME DEFAULT GETDATE(),
+        UpdatedAt DATETIME DEFAULT GETDATE()
+    )
+END
+GO
 
 -- Create Clients table
-CREATE TABLE Clients (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    FirstName NVARCHAR(50) NOT NULL,
-    LastName NVARCHAR(50) NOT NULL,
-    Email NVARCHAR(100),
-    Phone NVARCHAR(20),
-    Balance DECIMAL(18,2) NOT NULL DEFAULT 0
-);
+IF OBJECT_ID('dbo.Clients', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Clients (
+        Id INT PRIMARY KEY IDENTITY(1,1),
+        FirstName NVARCHAR(50) NOT NULL,
+        LastName NVARCHAR(50) NOT NULL,
+        Email NVARCHAR(100),
+        PhoneNumber NVARCHAR(20),
+        AccountNumber NVARCHAR(50) NOT NULL UNIQUE,
+        Balance DECIMAL(18,2) DEFAULT 0,
+        Status INT DEFAULT 1,
+        CreatedAt DATETIME DEFAULT GETDATE(),
+        UpdatedAt DATETIME DEFAULT GETDATE()
+    )
+END
+GO
 
--- Create TransferLog table
-CREATE TABLE TransferLog (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    FromClientId INT NOT NULL,
-    ToClientId INT NOT NULL,
-    Amount DECIMAL(18,2) NOT NULL,
-    TransferDate DATETIME NOT NULL DEFAULT GETDATE(),
-    AuthorizedByUserId INT NOT NULL,
-    FOREIGN KEY (FromClientId) REFERENCES Clients(Id),
-    FOREIGN KEY (ToClientId) REFERENCES Clients(Id),
-    FOREIGN KEY (AuthorizedByUserId) REFERENCES Users(Id)
-);
-
--- Create LoginRegister table
-CREATE TABLE LoginRegister (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    UserId INT NOT NULL,
-    LoginTime DATETIME NOT NULL DEFAULT GETDATE(),
-    LogoutTime DATETIME,
-    FOREIGN KEY (UserId) REFERENCES Users(Id)
-);
-
--- Insert a default test user
-INSERT INTO Users (FirstName, LastName, Email, UserName, PasswordHash, PermissionLevel)
-VALUES ('Test', 'User', 'user5@example.com', 'User5', '5555', 1);
+-- See docker/mssql-init/02-create-tables.sql for full schema
 ```
 
 ---
 
-## 🐛 Troubleshooting
+## ✅ Verification Endpoints
 
-### Error: "A network-related or instance-specific error occurred while establishing a connection to SQL Server"
-
-**Cause**: The application cannot connect to the database.
-
-**Solutions**:
-1. Verify `BANKSYSTEM_DB_CONNECTION` is set correctly
-2. Check if your database server allows external connections
-3. For Azure SQL: Add Railway's IP addresses to the firewall rules (or allow all Azure services)
-4. Check the connection string format
-
-### Error: "Cannot connect to API at http://localhost:5168/api"
-
-**Cause**: The frontend is built with localhost as the API URL.
-
-**Solution**: This should be fixed now - the frontend uses relative URLs (`/api`) which work on Railway because both frontend and backend are served from the same container.
-
-### Checking Logs on Railway
-
-1. Go to your Railway project
-2. Click on your service
-3. Click "Logs" tab to see real-time logs
-
----
-
-## ✅ Verification Checklist
-
-After deployment, verify these endpoints work:
+After deployment, test these endpoints:
 
 | Endpoint | Expected Response |
 |----------|------------------|
 | `https://your-app.railway.app/` | React app loads |
 | `https://your-app.railway.app/api/health` | `{"status":"healthy","message":"BankSystem API is running"}` |
 | `https://your-app.railway.app/swagger` | Swagger UI appears |
+| `https://your-app.railway.app/api/users` | List of users (JSON) |
+
+---
+
+## 🐛 Troubleshooting
+
+### Error: "A network-related or instance-specific error occurred"
+
+**Solutions**:
+1. Verify the connection string format: `Server=host,port;Database=name;...`
+2. Check that Railway SQL Server is running
+3. Verify credentials are correct
+
+### Error: Cannot connect to database
+
+**Check Railway logs**:
+1. Go to your Railway project
+2. Click on your service → "Logs" tab
+3. Look for connection errors
+
+### App loads but API calls fail
+
+**Solutions**:
+1. Ensure `REACT_APP_API_BASE_URL=/api` is set
+2. Check CORS settings in the backend
+3. Verify the backend is running on port 8080
 
 ---
 
 ## 🔒 Security Notes
 
-1. **Never commit** your connection strings to Git
+1. **Never commit** connection strings to Git
 2. Use Railway's **environment variables** for sensitive data
-3. For production, use strong passwords and enable encryption
-4. Consider using Azure AD authentication for Azure SQL
+3. For production, use stronger passwords
+4. Consider enabling SQL Server encryption
 
 ---
 
-## 📞 Need Help?
+## 📁 File Structure
 
-If you're still having issues:
-1. Check Railway logs for detailed error messages
-2. Verify your database is accessible from external networks
-3. Test your connection string locally first
+```
+BankSystem/
+├── Dockerfile              # Main deployment Dockerfile (Frontend + Backend)
+├── railway.json            # Railway configuration
+├── docker-compose.yml      # Local development with SQL Server
+├── restore-to-railway.sh   # Database setup script
+├── src/
+│   └── BankSystem.Api/     # .NET Backend
+├── frontend/
+│   └── presentation-app/   # React Frontend
+└── docker/
+    └── mssql-init/
+        ├── restore-database.sh
+        └── 02-create-tables.sql
+```
+
+---
+
+## 🚀 Deployment Commands
+
+**Local Development:**
+```bash
+# Start all services (SQL Server + Backend + Frontend)
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+```
+
+**Build for Railway locally:**
+```bash
+# Build the combined image
+docker build -t banksystem:latest .
+
+# Run locally
+docker run -p 8080:8080 \
+  -e "ConnectionStrings__Default=Server=caboose.proxy.rlwy.net,22254;Database=Bank;User Id=sa;Password=sa123456;TrustServerCertificate=True;Encrypt=False;" \
+  banksystem:latest
+```

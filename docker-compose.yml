@@ -1,8 +1,12 @@
 version: '3.8'
 
+# Docker Compose for local development and Railway deployment
+# For Railway: Use the root Dockerfile which combines frontend + backend
+
 services:
   # ============================================
-  # SQL Server Service
+  # SQL Server Service (Local Development Only)
+  # For Railway: Use Railway's SQL Server plugin
   # ============================================
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -23,19 +27,28 @@ services:
       # Mount the backup file (read-only)
       - ./db/Bank_backup.bak:/var/opt/mssql/backup/Bank_backup.bak:ro
       
-      # Mount bash restoration script
-      - ./docker/mssql-init/restore-database.sh:/docker-entrypoint-initdb.d/01-restore-database.sh
-      
-      # Mount fallback SQL script
-      - ./docker/mssql-init/02-create-tables.sql:/docker-entrypoint-initdb.d/02-create-tables.sql
+      # Mount init scripts
+      - ./docker/mssql-init:/docker-entrypoint-initdb.d
+    
+    # Custom entrypoint to run restore script
+    command: >
+      bash -c "
+        /opt/mssql/bin/sqlservr &
+        sleep 30
+        if [ -f /docker-entrypoint-initdb.d/restore-database.sh ]; then
+          chmod +x /docker-entrypoint-initdb.d/restore-database.sh
+          /docker-entrypoint-initdb.d/restore-database.sh
+        fi
+        wait
+      "
     
     # Health check - verifies database is ready
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost,1433", "-U", "sa", "-P", "${MSSQL_SA_PASSWORD:-sa123456}", "-Q", "SELECT 1"]
-      interval: 10s
-      timeout: 3s
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P ${MSSQL_SA_PASSWORD:-sa123456} -C -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost,1433 -U sa -P ${MSSQL_SA_PASSWORD:-sa123456} -Q 'SELECT 1'"]
+      interval: 15s
+      timeout: 10s
       retries: 30
-      start_period: 30s
+      start_period: 60s
     
     networks:
       - banksystem-network
@@ -55,9 +68,11 @@ services:
     container_name: banksystem-backend
     
     environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Default: ${ConnectionStrings__Default:-Server=sqlserver,1433;Database=Bank;User Id=sa;Password=sa123456;TrustServerCertificate=True;}
+      # For local dev, use Docker service name
+      # For Railway, this is overridden by Railway env vars
+      ConnectionStrings__Default: ${ConnectionStrings__Default:-Server=sqlserver,1433;Database=Bank;User Id=sa;Password=sa123456;TrustServerCertificate=True;Encrypt=False;Connection Timeout=30;}
     
     ports:
       - "${BACKEND_PORT:-5000}:8080"
@@ -72,25 +87,21 @@ services:
     
     # Restart policy
     restart: unless-stopped
-    
-    # Optional: Enable for debugging
-    # volumes:
-    #   - ./src/BankSystem.Api:/app/src/BankSystem.Api
 
 
   # ============================================
-  # Frontend Service (React)
+  # Frontend Service (React) - For standalone deployment
+  # Note: For Railway, frontend is bundled with backend in root Dockerfile
   # ============================================
   frontend:
     build:
       context: ./
       dockerfile: ./frontend/presentation-app/Dockerfile
+      args:
+        REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL:-/api}
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-/api}
     
     container_name: banksystem-frontend
-    
-    environment:
-      REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL:-http://localhost:5000}
-      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000}
     
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
@@ -104,10 +115,37 @@ services:
     
     # Restart policy
     restart: unless-stopped
+
+
+  # ============================================
+  # Combined App Service (Railway deployment)
+  # Use this for single-container deployment
+  # ============================================
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_BASE_URL: /api
+        REACT_APP_API_URL: /api
     
-    # Optional: Enable for hot reload during development
-    # volumes:
-    #   - ./frontend/presentation-app/src:/app/src
+    container_name: banksystem-app
+    
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: ${ConnectionStrings__Default:-Server=caboose.proxy.rlwy.net,22254;Database=Bank;User Id=sa;Password=sa123456;TrustServerCertificate=True;Encrypt=False;Connection Timeout=30;}
+    
+    ports:
+      - "8080:8080"
+    
+    networks:
+      - banksystem-network
+    
+    restart: unless-stopped
+    
+    profiles:
+      - railway
 
 
 # ============================================
