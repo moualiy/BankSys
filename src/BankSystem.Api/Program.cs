@@ -9,14 +9,22 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 var builder = WebApplication.CreateBuilder(args);
 
 // Allow appsettings / secrets to override the database connection string that the data layer uses.
-BankConnection.Configure(builder.Configuration.GetConnectionString("Default"));
-
-// Log connection string info for debugging (masked for security)
-var connStr = BankConnection.ConnectionString;
-var maskedConn = connStr.Length > 50 
-    ? connStr.Substring(0, 30) + "..." + connStr.Substring(connStr.Length - 20)
-    : "***";
-Console.WriteLine($"Database connection configured. Server info: {maskedConn}");
+try
+{
+    BankConnection.Configure(builder.Configuration.GetConnectionString("Default"));
+    
+    // Log connection string info for debugging (masked for security)
+    var connStr = BankConnection.ConnectionString;
+    var maskedConn = connStr.Length > 50 
+        ? connStr.Substring(0, 30) + "..." + connStr.Substring(connStr.Length - 20)
+        : "***";
+    Console.WriteLine($"Database connection configured. Server info: {maskedConn}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Warning: Database configuration error: {ex.Message}");
+    Console.WriteLine("App will start but database operations may fail.");
+}
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -359,9 +367,7 @@ app.MapGet("/api/transactions/history", (TransactionService transactionService) 
 // Fallback to serve React app for client-side routing
 app.MapFallbackToFile("index.html");
 
-app.Run();
-
-// --- Seed default test user (for local development) ---
+// --- Seed default test user (for development) ---
 // This ensures a test account exists so the frontend can login during development.
 // Note: low-risk, only creates the user if it does not already exist.
 try
@@ -389,5 +395,12 @@ try
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Error seeding test user: {ex.Message}");
+    Console.WriteLine($"Note: Could not seed test user: {ex.Message}");
+    // This is non-fatal - app can still run without test user
 }
+
+Console.WriteLine("BankSystem API starting...");
+Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
+Console.WriteLine($"Listening on: {Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "default"}");
+
+app.Run();

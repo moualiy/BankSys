@@ -66,17 +66,19 @@ COPY --from=backend-build /app/publish .
 # Copy React build output to wwwroot folder
 COPY --from=frontend-build /frontend/build ./wwwroot
 
-# Expose port (Railway uses PORT env variable, default 8080)
+# Copy entrypoint script
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Expose port (Railway uses PORT env variable)
 EXPOSE 8080
 
 # Set default environment variables
-# Railway will override ASPNETCORE_URLS with its PORT variable
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_URLS=http://+:8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8080/api/health || exit 1
+# Health check - uses PORT env var if set, otherwise 8080
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -f http://localhost:${PORT:-8080}/api/health || exit 1
 
-# Run the application
-ENTRYPOINT ["dotnet", "BankSystem.Api.dll"]
+# Run the application via entrypoint script
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
