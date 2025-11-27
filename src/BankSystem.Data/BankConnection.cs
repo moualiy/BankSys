@@ -5,7 +5,8 @@ namespace BankSystem.Data
 {
     public static class BankConnection
     {
-        private const string DefaultConnectionString = "Server=.;Database=Bank;User Id=sa;Password=sa123456;TrustServerCertificate=True;Encrypt=True;";
+        // Default connection string uses Encrypt=False for Railway compatibility
+        private const string DefaultConnectionString = "Server=.;Database=Bank;User Id=sa;Password=sa123456;TrustServerCertificate=True;Encrypt=False;";
         private static string? _configuredConnectionString;
 
         /// <summary>
@@ -15,7 +16,8 @@ namespace BankSystem.Data
         {
             if (!string.IsNullOrWhiteSpace(connectionString))
             {
-                _configuredConnectionString = EnsureTlsOptions(connectionString);
+                _configuredConnectionString = EnsureRailwayCompatibility(connectionString);
+                Console.WriteLine($"[BankConnection] Configured with: {MaskConnectionString(_configuredConnectionString)}");
             }
         }
 
@@ -23,11 +25,13 @@ namespace BankSystem.Data
         {
             get
             {
-                return _configuredConnectionString
+                var connStr = _configuredConnectionString
                     ?? GetEnvironmentConnectionString()
                     ?? BuildFromUrlVariable()
                     ?? BuildFromParts()
                     ?? DefaultConnectionString;
+                
+                return connStr;
             }
         }
 
@@ -39,7 +43,13 @@ namespace BankSystem.Data
                 ?? GetEnv("SQLAZURECONNSTR_DefaultConnection")
                 ?? GetEnv("CUSTOMCONNSTR_DefaultConnection");
             
-            return connStr != null ? EnsureTlsOptions(connStr) : null;
+            if (connStr != null)
+            {
+                connStr = EnsureRailwayCompatibility(connStr);
+                Console.WriteLine($"[BankConnection] Using env connection: {MaskConnectionString(connStr)}");
+            }
+            
+            return connStr;
         }
 
         private static string? BuildFromUrlVariable()
@@ -58,7 +68,7 @@ namespace BankSystem.Data
             // If the variable already contains a connection string, just return it.
             if (rawUrl.Contains("Server=", StringComparison.OrdinalIgnoreCase))
             {
-                return EnsureTlsOptions(rawUrl);
+                return EnsureRailwayCompatibility(rawUrl);
             }
 
             if (!Uri.TryCreate(rawUrl, UriKind.Absolute, out var uri))
@@ -79,7 +89,7 @@ namespace BankSystem.Data
             }
 
             var server = string.IsNullOrWhiteSpace(port) ? host : $"{host},{port}";
-            return $"Server={server};Database={database};User Id={username};Password={password};Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;";
+            return $"Server={server};Database={database};User Id={username};Password={password};Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;";
         }
 
         private static string? BuildFromParts()
@@ -120,28 +130,52 @@ namespace BankSystem.Data
             }
 
             var server = string.IsNullOrWhiteSpace(port) ? host : $"{host},{port}";
-            return $"Server={server};Database={database};User Id={username};Password={password};Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;";
+            return $"Server={server};Database={database};User Id={username};Password={password};Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;Connection Timeout=30;";
         }
 
         /// <summary>
-        /// Ensures TLS/SSL options are present in connection string for Railway compatibility
+        /// Ensures connection string is compatible with Railway's TCP proxy.
+        /// Railway's proxy doesn't support SQL Server TLS handshake, so we must use Encrypt=False.
         /// </summary>
-        private static string EnsureTlsOptions(string connStr)
+        private static string EnsureRailwayCompatibility(string connStr)
         {
+            // Force Encrypt=False for Railway proxy compatibility
+            // The proxy connection is already secured by Railway's infrastructure
+            if (connStr.Contains("Encrypt=True", StringComparison.OrdinalIgnoreCase))
+            {
+                connStr = System.Text.RegularExpressions.Regex.Replace(
+                    connStr, 
+                    @"Encrypt\s*=\s*True", 
+                    "Encrypt=False", 
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            }
+            else if (!connStr.Contains("Encrypt=", StringComparison.OrdinalIgnoreCase))
+            {
+                connStr = connStr.TrimEnd(';') + ";Encrypt=False";
+            }
+
             if (!connStr.Contains("TrustServerCertificate", StringComparison.OrdinalIgnoreCase))
             {
                 connStr = connStr.TrimEnd(';') + ";TrustServerCertificate=True";
             }
-            if (!connStr.Contains("Encrypt=", StringComparison.OrdinalIgnoreCase))
-            {
-                connStr = connStr.TrimEnd(';') + ";Encrypt=True";
-            }
+            
             if (!connStr.Contains("Connection Timeout", StringComparison.OrdinalIgnoreCase) && 
                 !connStr.Contains("ConnectTimeout", StringComparison.OrdinalIgnoreCase))
             {
                 connStr = connStr.TrimEnd(';') + ";Connection Timeout=30";
             }
+
             return connStr;
+        }
+
+        private static string MaskConnectionString(string connStr)
+        {
+            // Mask password in logs
+            return System.Text.RegularExpressions.Regex.Replace(
+                connStr, 
+                @"(Password\s*=\s*)[^;]+", 
+                "$1****", 
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         }
 
         private static string? GetEnv(string key) => Environment.GetEnvironmentVariable(key);
