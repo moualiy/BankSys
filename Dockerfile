@@ -75,6 +75,7 @@ EXPOSE 8080
 
 # Set default environment variables
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV PORT=8080
 
 # Health check - uses PORT env var if set, otherwise 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
