@@ -11,6 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Allow appsettings / secrets to override the database connection string that the data layer uses.
 BankConnection.Configure(builder.Configuration.GetConnectionString("Default"));
 
+// Log connection string info for debugging (masked for security)
+var connStr = BankConnection.ConnectionString;
+var maskedConn = connStr.Length > 50 
+    ? connStr.Substring(0, 30) + "..." + connStr.Substring(connStr.Length - 20)
+    : "***";
+Console.WriteLine($"Database connection configured. Server info: {maskedConn}");
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -26,9 +33,11 @@ builder.Services.AddScoped<LoginRegisterService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.WithOrigins("http://localhost:3000", "http://localhost:5167", "http://localhost:3001", "http://frontend:3000")
+        builder => builder
+            .SetIsOriginAllowed(origin => true) // Allow all origins for Railway deployment
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials());
 });
 
 var app = builder.Build();
