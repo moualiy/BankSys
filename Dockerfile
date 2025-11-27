@@ -17,6 +17,11 @@ RUN npm ci
 # Copy frontend source code
 COPY frontend/presentation-app/ ./
 
+# Set environment variables for production build
+# Use /api for relative path (served from same origin on Railway)
+ENV REACT_APP_API_BASE_URL="/api"
+ENV REACT_APP_API_URL="/api"
+
 # Build the React app
 RUN npm run build
 

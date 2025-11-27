@@ -62,7 +62,18 @@ const Dashboard = () => {
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
         console.error('Error details:', err.message);
-        setError(`⚠️ Cannot connect to API at ${API_BASE_URL}. Make sure the .NET API is running!\n\nError: ${err.message}`);
+        
+        // Check if it's a server error (500) which usually means database issue
+        const isServerError = err.message.includes('500') || err.message.includes('Internal Server Error');
+        const isDatabaseError = err.message.includes('SqlException') || err.message.includes('database');
+        
+        if (isServerError || isDatabaseError) {
+          setError(`⚠️ Database connection error. The server cannot connect to SQL Server.\n\nPlease ensure the BANKSYSTEM_DB_CONNECTION environment variable is set correctly on Railway.\n\nError: ${err.message}`);
+        } else if (err.message === 'Failed to fetch') {
+          setError(`⚠️ Cannot connect to API. The server might be starting up or there's a network issue.\n\nTry refreshing the page in a few seconds.`);
+        } else {
+          setError(`⚠️ API Error: ${err.message}`);
+        }
       } finally {
         setLoading(false);
       }
