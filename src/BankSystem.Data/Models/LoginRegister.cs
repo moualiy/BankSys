@@ -7,5 +7,10 @@ namespace BankSystem.Data.Models
         public string UserName { get; set; }
         public DateTime LoginTimestamp { get; set; }
         public short LoginStatus { get; set; }
+
+        public LoginRegister()
+        {
+            UserName = string.Empty;
+        }
     }
 }

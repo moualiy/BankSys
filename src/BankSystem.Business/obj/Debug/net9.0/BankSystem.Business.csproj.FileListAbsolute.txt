@@ -13,3 +13,19 @@ d:\WS2\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSystem.Business.d
 d:\WS2\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\refint\BankSystem.Business.dll
 d:\WS2\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSystem.Business.pdb
 d:\WS2\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\ref\BankSystem.Business.dll
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\bin\Debug\net9.0\BankSystem.Business.deps.json
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\bin\Debug\net9.0\BankSystem.Business.dll
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\bin\Debug\net9.0\BankSystem.Business.pdb
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\bin\Debug\net9.0\BankSystem.Data.dll
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\bin\Debug\net9.0\BankSystem.Data.pdb
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSystem.Business.csproj.AssemblyReference.cache
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSystem.Business.GeneratedMSBuildEditorConfig.editorconfig
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSystem.Business.AssemblyInfoInputs.cache
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSystem.Business.AssemblyInfo.cs
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSystem.Business.csproj.CoreCompileInputs.cache
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSystem.Business.sourcelink.json
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSyst.7D84F16E.Up2Date
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSystem.Business.dll
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\refint\BankSystem.Business.dll
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\BankSystem.Business.pdb
+D:\DOWNLOAD\Download for programing\cm\BankSystem\src\BankSystem.Business\obj\Debug\net9.0\ref\BankSystem.Business.dll

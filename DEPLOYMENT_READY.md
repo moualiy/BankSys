@@ -334,7 +334,10 @@ ASPNETCORE_ENVIRONMENT=Development
 ENABLE_SWAGGER=true
 DEBUG=true
 
-# Frontend - Connect to localhost
+# Frontend - Connect to backend
+# Preferred variable
+REACT_APP_API_BASE_URL=http://localhost:5000
+# Legacy alias still supported by the app
 REACT_APP_API_URL=http://localhost:5000
 
 # Ports
@@ -355,7 +358,9 @@ ENABLE_SWAGGER=false
 DEBUG=false
 
 # Frontend - Use your domain
-REACT_APP_API_URL=http://api.yourdomain.com:5000
+REACT_APP_API_BASE_URL=https://api.yourdomain.com
+# Legacy alias (optional)
+REACT_APP_API_URL=https://api.yourdomain.com
 
 # Security
 SECURITY_ENABLE_HTTPS=true
@@ -364,12 +369,31 @@ SECURITY_ENABLE_HSTS=true
 
 ---
 
-## 🔐 PRODUCTION CHECKLIST
+## � Deploying on Railway (API + Frontend)
+
+1. **Provision a SQL Server instance** (Railway add-on, Azure SQL, or an external host). Note the full connection string.
+2. **Set the backend env vars** inside your Railway .NET service:
+   - `BANKSYSTEM_DB_CONNECTION` → full SQL Server connection string (preferred).
+   - Optional alternatives (auto-detected): `ConnectionStrings__Default`, `SQLSERVER_URL`, `MSSQL_URL`, or individual pieces (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `RAILWAY_TCP_PROXY_*`).
+   - The API now automatically assembles the proper connection string from these variables.
+3. **Expose the API base URL to the frontend** service:
+   - Set `REACT_APP_API_BASE_URL` (or the legacy `REACT_APP_API_URL`) to the public HTTPS URL of the API (e.g., `https://your-api.up.railway.app/api`).
+   - Rebuild the React app whenever this value changes.
+4. **Update CORS** in `Program.cs` if your Railway frontend domain differs from the defaults. You can add it via the `WithOrigins` list.
+5. **Verify health checks**:
+   - API: `https://<api-domain>/api/health`
+   - Frontend-to-API: open the deployed dashboard and confirm the stats load without the "Cannot connect to API" warning.
+
+> 💡 Tip: If you mount SQL Server through Railway's TCP proxy, use the provided `RAILWAY_TCP_PROXY_DOMAIN` and `RAILWAY_TCP_PROXY_PORT` variables—the backend now understands them.
+
+---
+
+## �🔐 PRODUCTION CHECKLIST
 
 Before deploying to production:
 
 - [ ] Change SQL Server password in `.env.production`
-- [ ] Update `REACT_APP_API_URL` to your domain
+- [ ] Update `REACT_APP_API_BASE_URL` (and/or `REACT_APP_API_URL`) to your domain
 - [ ] Update `CORS_ORIGINS` to your domains
 - [ ] Set `ASPNETCORE_ENVIRONMENT=Production`
 - [ ] Disable Swagger: `ENABLE_SWAGGER=false`

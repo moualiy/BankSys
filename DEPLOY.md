@@ -98,4 +98,12 @@ See `DEPLOYMENT_READY.md` for:
 
 ---
 
+## 🚉 Deploying on Railway?
+
+- Set `BANKSYSTEM_DB_CONNECTION` (or `ConnectionStrings__Default`) on the API service to the remote SQL Server connection string provided by Railway/Azure.
+- Expose the API URL to the React build via `REACT_APP_API_BASE_URL` (or the legacy `REACT_APP_API_URL`). Use the public HTTPS URL of your Railway API, e.g., `https://your-api.up.railway.app/api`.
+- Redeploy both services after changing these variables so the new configuration is baked into the containers.
+
+---
+
 **That's it! 3 commands and you're deployed.** ✨

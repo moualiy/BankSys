@@ -1,4 +1,5 @@
 using BankSystem.Business.Services;
+using BankSystem.Data;
 using BankSystem.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
@@ -6,6 +7,9 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Allow appsettings / secrets to override the database connection string that the data layer uses.
+BankConnection.Configure(builder.Configuration.GetConnectionString("Default"));
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

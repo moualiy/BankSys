@@ -46,6 +46,11 @@ public class CurrencyService
                     foreach (var codeArray in supportedCodes)
                     {
                         var codeStr = codeArray[0].GetString();
+                        if (string.IsNullOrWhiteSpace(codeStr))
+                        {
+                            continue;
+                        }
+
                         var nameStr = codeArray[1].GetString();
 
                         // Get the rate for this currency
@@ -55,8 +60,8 @@ public class CurrencyService
                         {
                             Id = id++,
                             Code = codeStr,
-                            Name = nameStr,
-                            Country = nameStr, // Using name as country for now
+                            Name = nameStr ?? codeStr,
+                            Country = nameStr ?? codeStr, // Using name as country for now
                             Rate = rate
                         });
                     }
@@ -75,6 +80,11 @@ public class CurrencyService
 
     private async Task<decimal> GetExchangeRate(string currencyCode)
     {
+        if (string.IsNullOrWhiteSpace(currencyCode))
+        {
+            return 1.0m;
+        }
+
         try
         {
             using (var client = new HttpClient())
